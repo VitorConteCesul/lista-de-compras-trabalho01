@@ -19,5 +19,24 @@ export const style = StyleSheet.create({
     fontStyle: "normal",
     fontWeight: 700,
     lineHeight: 25.2,
+  },
+  button: {
+    
   }
+  // form: {
+  //   width: '100%',
+  //   flexDirection: "row",
+  //   marginTop: 18,
+
+  // },
+  // input: {
+  //   flex: 1,
+  //   height: 56,
+  //   padding: 16,
+  //   backgroundColor: '#ffffff',
+  //   borderRadius: 5,
+  //   marginRight: 16
+  // },
+
+
 })
