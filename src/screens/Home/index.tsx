@@ -1,33 +1,57 @@
-import { Alert, FlatList, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, FlatList, Text, TextInput, TouchableOpacity, View, Image,} from "react-native";
 import { style } from "./styles";
 import { useState } from "react";
-import { Product } from "../../components/product";
+import { Product } from "../../components/Product";
+
+type ProductType = {
+  name: string;
+  finalized: boolean;
+};
 
 export function Home() {
-
-  const [produts, setProducts] = useState<string[]>([]);
-  const [productName, setProductName] = useState(" ");
+  const [produts, setProducts] = useState<ProductType[]>([]);
+  const [productName, setProductName] = useState("");
+  const productFinalizedCount = produts.reduce((counter, product) => {
+    return counter + (product.finalized ? 1 : 0);
+  }, 0);
 
   function handleAddProduct() {
-    if (produts.includes(productName)) {
-      return
-      Alert.alert("Produto já cadastrado", "Já existe um produto na lista com esse nome.");
+    if (produts.some((p) => p.name === productName)) {
+      return Alert.alert(
+        "Produto já cadastrado",
+        "Já existe um produto na lista com esse nome."
+      );
     }
 
-    setProducts([...produts, productName])
-    setProductName("")
+    setProducts([...produts, { name: productName, finalized: false }]);
+    setProductName("");
+  }
+  function handleOnToggle(name: string) {
+    setProducts((prev) => {
+      const updated = prev.map((item) =>
+        item.name === name ? { ...item, finalized: !item.finalized } : item
+      );
+
+      updated.sort((a, b) => {
+        if (a.finalized === b.finalized) return 0;
+        return a.finalized ? 1 : -1;
+      });
+
+      return updated;
+    });
   }
 
-  function handleProductRemove(name: String) {
+  function handleProductRemove(name: string) {
     Alert.alert("Remover", `Deseja remover o produto ${name}?`, [
       {
-        text: 'Sim',
-        onPress: () => setProducts(produts.filter(product => product !== name))
+        text: "Sim",
+        onPress: () =>
+          setProducts(produts.filter((product) => product.name !== name)),
       },
       {
-        text: 'Não',
-        style: 'cancel'
-      }
+        text: "Não",
+        style: "cancel",
+      },
     ]);
   }
 
@@ -36,13 +60,17 @@ export function Home() {
       <View style={style.header}>
         <Text style={style.title}>Lista de Compras</Text>
       </View>
+
       <View style={style.form}>
-        <TextInput style={style.input}
+        <TextInput
+          style={style.input}
           placeholder="Adicione um novo produto"
           placeholderTextColor="#808080"
+          value={productName}
+          onChangeText={setProductName}
         />
         <TouchableOpacity style={style.button} onPress={handleAddProduct}>
-          <Text>+</Text>
+          <Image source={require("../../../assets/plus.png")} />
         </TouchableOpacity>
       </View>
 
@@ -50,38 +78,40 @@ export function Home() {
         <View style={style.textLabel}>
           <Text style={style.textProduct}>Produtos</Text>
           <View style={style.sumTotal}>
-            <Text>0</Text>
+            <Text>{produts.length}</Text>
           </View>
         </View>
 
         <View style={style.textLabel}>
           <Text style={style.textFinished}>Finalizados</Text>
           <View style={style.sumTotal}>
-            <Text>0</Text>
+            <Text>{productFinalizedCount}</Text>
           </View>
         </View>
       </View>
 
-      <View style={style.list}>
-        <FlatList
-          data={produts}
-          keyExtractor={(item) => item}
-          contentContainerStyle={style.list}
-          renderItem={({ item }) => (
-          <Product name={item} onRemove={() => handleProductRemove(item)}/>
-          )}
-          
-          ListEmptyComponent={() => (
-          <Text style={style.listEmpytText}>
-            Você ainda não tem produtos na lista de compra
-            Adicione produtos e organize sua lista de compras
-          </Text>
+      <FlatList
+        data={produts}
+        keyExtractor={(item) => item.name}
+        contentContainerStyle={style.list}
+        renderItem={({ item }) => (
+          <Product
+            name={item.name}
+            finalized={item.finalized}
+            onRemove={() => handleProductRemove(item.name)}
+            onToggle={() => handleOnToggle(item.name)}
+          />
         )}
-        />
-      </View>
+        ListEmptyComponent={() => (
+          <View style={style.listEmpyt}>
+            <View style={style.listImg}>
+              <Image source={require("../../../assets/shopping_list.png")} />
+            </View>
+            <Text style={style.textBold}> Você ainda não tem produtos na lista de compra </Text>
+            <Text style={style.textGray}> Adicione produtos e organize sua lista de compras </Text>
+          </View>
+        )}
+      />
     </View>
-
-
-    
-  )
+  );
 }
